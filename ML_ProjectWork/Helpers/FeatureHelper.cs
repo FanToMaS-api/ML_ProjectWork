@@ -4,6 +4,7 @@ using Microsoft.ML.Trainers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.ML.Trainers.FastTree;
 using Microsoft.ML.Trainers.LightGbm;
 
 namespace ML_ProjectWork
@@ -19,8 +20,7 @@ namespace ML_ProjectWork
         public static List<int> FeaturePermutation(
             MLContext mlColntext,
             RegressionPredictionTransformer<LinearModelParameters> model,
-            IDataView preprocessedTrainData,
-            string[] featureColumnNames)
+            IDataView preprocessedTrainData)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
@@ -37,10 +37,9 @@ namespace ML_ProjectWork
         ///     Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
         public static List<int> FeaturePermutation(
-            MLContext mlColntext, 
+            MLContext mlColntext,
             RegressionPredictionTransformer<LinearRegressionModelParameters> model,
-            IDataView preprocessedTrainData, 
-            string[] featureColumnNames)
+            IDataView preprocessedTrainData)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
@@ -54,10 +53,90 @@ namespace ML_ProjectWork
         }
 
         public static List<int> FeaturePermutation(
-            MLContext mlColntext, 
+            MLContext mlColntext,
             RegressionPredictionTransformer<LightGbmRegressionModelParameters> model,
-            IDataView preprocessedTrainData, 
-            string[] featureColumnNames)
+            IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<FastForestRegressionModelParameters> model,
+            IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<PoissonRegressionModelParameters> model, IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<FastTreeRegressionModelParameters> model, IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<FastTreeTweedieModelParameters> model, IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<GamRegressionModelParameters> model, IDataView preprocessedTrainData)
+        {
+            var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
+                model,
+                preprocessedTrainData,
+                permutationCount: 5);
+
+            return featuresPermutation
+                .Select((metric, index) => new { index, metric.RSquared })
+                .OrderByDescending(_ => Math.Abs(_.RSquared.Mean))
+                .Select(_ => _.index).ToList();
+        }
+
+        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<OlsModelParameters> model, IDataView preprocessedTrainData)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
