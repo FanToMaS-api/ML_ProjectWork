@@ -17,15 +17,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
         public static List<int> FeaturePermutation(
             MLContext mlColntext,
             RegressionPredictionTransformer<LinearModelParameters> model,
-            IDataView preprocessedTrainData)
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -36,15 +38,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     Sdca & OnlineGradientDescent: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
         public static List<int> FeaturePermutation(
             MLContext mlColntext,
             RegressionPredictionTransformer<LinearRegressionModelParameters> model,
-            IDataView preprocessedTrainData)
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -55,15 +59,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     LightGbm: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
         public static List<int> FeaturePermutation(
             MLContext mlColntext,
             RegressionPredictionTransformer<LightGbmRegressionModelParameters> model,
-            IDataView preprocessedTrainData)
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -74,15 +80,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     FastForest: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
         public static List<int> FeaturePermutation(
             MLContext mlColntext,
             RegressionPredictionTransformer<FastForestRegressionModelParameters> model,
-            IDataView preprocessedTrainData)
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -93,12 +101,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     LbfgsPoissonRegression: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
-        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<PoissonRegressionModelParameters> model, IDataView preprocessedTrainData)
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<PoissonRegressionModelParameters> model,
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -109,12 +122,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     FastTree: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
-        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<FastTreeRegressionModelParameters> model, IDataView preprocessedTrainData)
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<FastTreeRegressionModelParameters> model,
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -125,12 +143,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     FastTreeTweedie: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
-        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<FastTreeTweedieModelParameters> model, IDataView preprocessedTrainData)
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<FastTreeTweedieModelParameters> model,
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -141,12 +164,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     Gam: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
-        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<GamRegressionModelParameters> model, IDataView preprocessedTrainData)
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<GamRegressionModelParameters> model,
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })
@@ -157,12 +185,17 @@ namespace ML_ProjectWork
         /// <summary>
         ///     Ols: Выводит фичи в порядке уменьшения влияния на результат
         /// </summary>
-        public static List<int> FeaturePermutation(MLContext mlColntext, RegressionPredictionTransformer<OlsModelParameters> model, IDataView preprocessedTrainData)
+        /// <param name="permutationCount"> Кол-во фич для расчета </param>
+        public static List<int> FeaturePermutation(
+            MLContext mlColntext,
+            RegressionPredictionTransformer<OlsModelParameters> model,
+            IDataView preprocessedTrainData,
+            int permutationCount)
         {
             var featuresPermutation = mlColntext.Regression.PermutationFeatureImportance(
                 model,
                 preprocessedTrainData,
-                permutationCount: 5);
+                permutationCount: permutationCount);
 
             return featuresPermutation
                 .Select((metric, index) => new { index, metric.RSquared })

@@ -10,6 +10,8 @@ namespace ML_ProjectWork
         {
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             var dataPath = @"..\..\..\..\kc_house_data.csv";
+
+            // всевозможные тренера
             var trainers = new List<TrainerModel>
             {
                 TrainerModel.LbfgsPoissonRegression,
@@ -28,7 +30,7 @@ namespace ML_ProjectWork
             var time = 100000000000;
             var timer = new Stopwatch();
             var isNeedAnomalyCalc = true;
-            var house = new HouseModel
+            var testHouseModel = new HouseModel
             {
                 Id = 12,
                 Bedrooms = 2,
@@ -58,7 +60,7 @@ namespace ML_ProjectWork
                 var model = new Model(dataPath, 15, trainer, isNeedAnomalyCalc);
                 model.Fit();
 
-                model.Predict(house);
+                model.Predict(testHouseModel);
                 timer.Stop();
 
                 if (model.Accuracy >= bestAccuracy)

@@ -19,14 +19,22 @@ namespace ML_ProjectWork
         /// </summary>
         public static void FindAnomalies(MLContext mlContext, IDataView dataView)
         {
+            // Поиск сезонности у Label (цикличности)
             var seasonality = mlContext.AnomalyDetection.DetectSeasonality(dataView, "Label");
+
+            // Определение аномалий
+            // Threshold = Пороговое значение для определения аномалии,
+            // BatchSize = Разделение входных данных на части (-1 = использование всех данных)
+            // Sensitivity = Чувствительность
+            // DetectMode = Задает тип выходных данных (размерность вектора)
+            // DeseasonalityMode = Настройка поиска
             var result = mlContext.AnomalyDetection.DetectEntireAnomalyBySrCnn(
                 dataView,
                 nameof(PredictionAnomalyModel.Preds),
                 "Label",
                 new SrCnnEntireAnomalyDetectorOptions
                 {
-                    Threshold = 0.2,
+                    Threshold = 0.5,
                     BatchSize = -1,
                     Period = seasonality,
                     Sensitivity = 90,
@@ -39,6 +47,7 @@ namespace ML_ProjectWork
             var count = 0;
             foreach (var prediction in predictions)
             {
+                // Preds[0] принимает значения 0 или 1, 1 только в том случае, если для данные превысили Threshold
                 if (prediction.Preds[0] == 1)
                 {
                     count++;

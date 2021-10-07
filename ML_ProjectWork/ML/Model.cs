@@ -18,28 +18,56 @@ namespace ML_ProjectWork
     {
         #region Fields
 
+        /// <summary>
+        ///     Тип тренера
+        /// </summary>
         private readonly TrainerModel _trainer;
 
+        /// <summary>
+        ///     Число для разделения данных на тестовые и тренировочные
+        /// </summary>
         private readonly double _testFraction;
 
+        /// <summary>
+        ///     Кол-во фичей, которые мы не будет учитывать при обучении
+        /// </summary>
         private readonly int _countExcludedFeatures;
 
+        /// <summary>
+        ///     Список фичей
+        /// </summary>
         private readonly List<string> _featureNames;
 
+        /// <summary>
+        ///     Список исключенных фичей
+        /// </summary>
         private readonly List<string> _dropColumns;
 
         private readonly MLContext _mlContext;
 
+        /// <summary>
+        ///     Данные
+        /// </summary>
         private readonly IDataView _dataView;
 
-        private readonly MLContext _anomalyMlContext;
-
+        /// <summary>
+        ///     Данные для поиска аномалий, различаются типом AnomalyHouseModel и HouseModel
+        /// </summary>
         private readonly IDataView _anomalyDataView;
 
+        /// <summary>
+        ///     Разделитель данных в файле
+        /// </summary>
         private readonly char _separatorChar;
 
+        /// <summary>
+        ///     Модель
+        /// </summary>
         private TransformerChain<ITransformer> _model;
 
+        /// <summary>
+        ///     Словарь возвращающий тренеров по типу
+        /// </summary>
         private static Dictionary<TrainerModel, IEstimator<ITransformer>> _trainers =
             new()
             {
@@ -59,10 +87,15 @@ namespace ML_ProjectWork
         #region .ctor
 
         /// <inheritdoc cref="Model"/>
-        public Model(string dataPath, int countExcludedFeatures, TrainerModel trainer, bool isNeedAnomalyCalc = false, char separatorChar = ',', double testFraction = 0.2)
+        public Model(
+            string dataPath,
+            int countExcludedFeatures,
+            TrainerModel trainer,
+            bool isNeedAnomalyCalc = false,
+            char separatorChar = ',',
+            double testFraction = 0.2)
         {
-            _mlContext = new MLContext(212103);
-            _anomalyMlContext = new MLContext(212103);
+            _mlContext = new MLContext(212103); // 212103 - seed, чтобы при новом запуске результаты оставались теми же
             _countExcludedFeatures = countExcludedFeatures;
             _trainer = trainer;
 
@@ -70,24 +103,28 @@ namespace ML_ProjectWork
             _dropColumns = new();
             _separatorChar = separatorChar;
 
+            // Получаю и обрабатываю данные
             var housesData = File.ReadAllLines(dataPath)
                 .Skip(1)
                 .Select(ProcessingData)
                 .ToArray();
 
+            // Поиск аномалий
             if (isNeedAnomalyCalc)
             {
-                // Поиск аномалий
+                // Получаю и обрабатываю данные для поиска аномалий различаются double и float у Label
                 var anomalyHousesData = File.ReadAllLines(dataPath)
                     .Skip(1)
                     .Select(ProcessingAnomalyData)
                     .ToArray();
-                _anomalyDataView = _anomalyMlContext.Data.LoadFromEnumerable(anomalyHousesData);
-                AnomalyDetector.FindAnomalies(_anomalyMlContext, _anomalyDataView);
+
+                _anomalyDataView = _mlContext.Data.LoadFromEnumerable(anomalyHousesData);
+                AnomalyDetector.FindAnomalies(_mlContext, _anomalyDataView);
             }
 
             _dataView = _mlContext.Data.LoadFromEnumerable(housesData);
 
+            // Изначально отбираю все фичи
             _featureNames = _dataView.Schema.Select(_ => _.Name).ToList();
         }
 
@@ -110,13 +147,18 @@ namespace ML_ProjectWork
         public void Fit()
         {
             DataPreparing();
+
             var trainedPipeline = CreatePipeline();
+
+            // Разделение данных на тестовые и тренировочные в соответствии с фракцией
             var trainTestData = _mlContext.Data.TrainTestSplit(_dataView, _testFraction);
             var trainData = trainTestData.TrainSet;
             var testsData = trainTestData.TestSet;
+
+            // Обучение модели
             _model = trainedPipeline.Fit(trainData);
 
-            // Тестирование точности
+            // Тестирование точности на тестовых данных
             var predsDataView = _model.Transform(testsData);
             var metrics = _mlContext.Regression.Evaluate(predsDataView);
 
@@ -232,6 +274,7 @@ namespace ML_ProjectWork
                 _featureNames.Add(sortedFeatures[i]);
             }
 
+            // Колонка Label может быть исключена, но ее исключать нельзя
             if (!_featureNames.Contains("Label"))
             {
                 _featureNames.Add("Label");
@@ -245,18 +288,22 @@ namespace ML_ProjectWork
         {
             var result = new List<string>();
 
+            // подготовка pipeline
             var pipeline = _mlContext.Transforms.Concatenate("Features", _featureNames.ToArray())
                 .Append(_mlContext.Transforms.NormalizeLogMeanVariance("Features"));
 
             var trainer = SetTrainer();
             var trainedPipeline = pipeline.Append(trainer);
 
+            // Предварительная обработка данных
             var model = trainedPipeline.Fit(_dataView);
             var preprocessedData = model.Transform(_dataView);
+
             var indexes = GetIndexes(trainer, preprocessedData);
 
             foreach (var index in indexes)
             {
+                // Добавляю имена фич в порядке значимости
                 result.Add(_featureNames[index]);
             }
 
@@ -268,12 +315,14 @@ namespace ML_ProjectWork
         /// </summary>
         private List<int> GetIndexes(IEstimator<ITransformer> trainer, IDataView preprocessedData)
         {
+            // Не получилось сделать универсально, так как тренеры вроду бы независимы
             if (_trainer == TrainerModel.FastForest)
             {
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<FastForestRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.LbfgsPoissonRegression)
@@ -281,7 +330,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<PoissonRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.Sdca)
@@ -289,7 +339,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<LinearRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.FastTree)
@@ -297,7 +348,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<FastTreeRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.FastTreeTweedie)
@@ -305,7 +357,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<FastTreeTweedieModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.Gam)
@@ -313,7 +366,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<GamRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.Ols)
@@ -321,7 +375,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<OlsModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.OnlineGradientDescent)
@@ -329,7 +384,8 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<LinearRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             if (_trainer == TrainerModel.LightGbm)
@@ -337,14 +393,15 @@ namespace ML_ProjectWork
                 return FeatureHelper.FeaturePermutation(
                     _mlContext,
                     (RegressionPredictionTransformer<LightGbmRegressionModelParameters>)trainer.Fit(preprocessedData),
-                    preprocessedData);
+                    preprocessedData,
+                    _featureNames.Count);
             }
 
             return new List<int>();
         }
 
         /// <summary>
-        ///     Устанавливает тренера в соответствии с
+        ///     Устанавливает тренера в соответствии с выбранным _trainer
         /// </summary>
         private IEstimator<ITransformer> SetTrainer()
         {
@@ -358,8 +415,12 @@ namespace ML_ProjectWork
             }
         }
 
+        /// <summary>
+        ///     Создает pipeline
+        /// </summary>
         private EstimatorChain<ITransformer> CreatePipeline()
         {
+            // Подготовка основного pipline
             var pipeline = _mlContext.Transforms.Concatenate("Features", _featureNames.ToArray())
                 .Append(_mlContext.Transforms.DropColumns(_dropColumns.ToArray()))
                 .Append(_mlContext.Transforms.NormalizeLogMeanVariance("Features"));
