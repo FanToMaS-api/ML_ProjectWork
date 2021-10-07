@@ -3,9 +3,9 @@
 namespace ML_ProjectWork
 {
     /// <summary>
-    ///     Модель дома
+    ///     Модель дома для поиска аномалий
     /// </summary>
-    internal class HouseModel
+    internal class AnomalyHouseModel
     {
         #region Properties
 
@@ -26,7 +26,7 @@ namespace ML_ProjectWork
         /// </summary>
         [LoadColumn(2)]
         [ColumnName("Label")]
-        public float Price { get; set; }
+        public double Price { get; set; }
 
         /// <summary>
         ///     Кол-во спален

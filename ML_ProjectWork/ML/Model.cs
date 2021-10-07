@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ML_ProjectWork.Models;
 
 namespace ML_ProjectWork
 {
@@ -27,19 +28,23 @@ namespace ML_ProjectWork
 
         private readonly List<string> _dropColumns;
 
-        private readonly IDataView? _dataView;
-
         private readonly MLContext _mlContext;
 
-        private readonly string _label;
+        private readonly IDataView _dataView;
+
+        private readonly MLContext _anomalyMlContext;
+
+        private readonly IDataView _anomalyDataView;
 
         private readonly char _separatorChar;
+
+        private TransformerChain<ITransformer> _model;
 
         private static Dictionary<TrainerModel, IEstimator<ITransformer>> _trainers =
             new()
             {
                 { TrainerModel.LbfgsPoissonRegression, new MLContext(212103).Regression.Trainers.LbfgsPoissonRegression() },
-                { TrainerModel.FastForest, new MLContext(212103).Regression.Trainers.LightGbm() },
+                { TrainerModel.FastForest, new MLContext(212103).Regression.Trainers.FastForest() },
                 { TrainerModel.FastTree, new MLContext(212103).Regression.Trainers.FastTree() },
                 { TrainerModel.FastTreeTweedie, new MLContext(212103).Regression.Trainers.FastTreeTweedie() },
                 { TrainerModel.Gam, new MLContext(212103).Regression.Trainers.Gam() },
@@ -54,13 +59,13 @@ namespace ML_ProjectWork
         #region .ctor
 
         /// <inheritdoc cref="Model"/>
-        public Model(string dataPath, int countExcludedFeatures, TrainerModel trainer, string label, char separatorChar = ',', double testFraction = 0.2)
+        public Model(string dataPath, int countExcludedFeatures, TrainerModel trainer, bool isNeedAnomalyCalc = false, char separatorChar = ',', double testFraction = 0.2)
         {
             _mlContext = new MLContext(212103);
+            _anomalyMlContext = new MLContext(212103);
             _countExcludedFeatures = countExcludedFeatures;
             _trainer = trainer;
 
-            _label = label;
             _testFraction = testFraction;
             _dropColumns = new();
             _separatorChar = separatorChar;
@@ -70,9 +75,19 @@ namespace ML_ProjectWork
                 .Select(ProcessingData)
                 .ToArray();
 
+            if (isNeedAnomalyCalc)
+            {
+                // Поиск аномалий
+                var anomalyHousesData = File.ReadAllLines(dataPath)
+                    .Skip(1)
+                    .Select(ProcessingAnomalyData)
+                    .ToArray();
+                _anomalyDataView = _anomalyMlContext.Data.LoadFromEnumerable(anomalyHousesData);
+                AnomalyDetector.FindAnomalies(_anomalyMlContext, _anomalyDataView);
+            }
+
             _dataView = _mlContext.Data.LoadFromEnumerable(housesData);
 
-            //_dataView = _mlContext.Data.LoadFromTextFile<HouseModel>(dataPath, separatorChar);
             _featureNames = _dataView.Schema.Select(_ => _.Name).ToList();
         }
 
@@ -99,13 +114,30 @@ namespace ML_ProjectWork
             var trainTestData = _mlContext.Data.TrainTestSplit(_dataView, _testFraction);
             var trainData = trainTestData.TrainSet;
             var testsData = trainTestData.TestSet;
-            var model = trainedPipeline.Fit(trainData);
+            _model = trainedPipeline.Fit(trainData);
 
             // Тестирование точности
-            var predsDataView = model.Transform(testsData);
+            var predsDataView = _model.Transform(testsData);
             var metrics = _mlContext.Regression.Evaluate(predsDataView);
 
             Accuracy = metrics.RSquared;
+        }
+
+        /// <summary>
+        ///     Предсказание цены дома
+        /// </summary>
+        public void Predict(HouseModel house)
+        {
+            if (_model is null)
+            {
+                return;
+            }
+
+            var predEngine = _mlContext.Model.CreatePredictionEngine<HouseModel, PredictionModel>(_model);
+
+            var prediction = predEngine.Predict(house);
+
+            Console.WriteLine($"Predicted price = {prediction.Score} for trainer: {_trainer} (accuracy = {Accuracy})");
         }
 
         #endregion
@@ -119,6 +151,61 @@ namespace ML_ProjectWork
         {
             var information = houseInfo.Split(_separatorChar);
 
+            return new HouseModel
+            {
+                Id = float.Parse(information[0].Replace("\"", "")),
+                Price = float.Parse(information[2]),
+                Bedrooms = float.Parse(information[3]),
+                Bathrooms = float.Parse(information[4]),
+                LivingArea = float.Parse(information[5]),
+                Area = float.Parse(information[6]),
+                Floors = float.Parse(information[7].Replace("\"", "")),
+                IsWaterFront = float.Parse(information[8]),
+                View = float.Parse(information[9]),
+                Condition = float.Parse(information[10]),
+                Grade = float.Parse(information[11]),
+                SqftAbove = float.Parse(information[12]),
+                SqftBasement = float.Parse(information[13]),
+                YearBuilt = float.Parse(information[14]),
+                YearRenovation = float.Parse(information[15].Replace("\"", "")),
+                ZipCode = float.Parse(information[16].Replace("\"", "")),
+                Lat = float.Parse(information[17]),
+                Long = float.Parse(information[18]),
+                SqftLiving15 = float.Parse(information[19]),
+                SqftLot15 = float.Parse(information[20]),
+            };
+        }
+
+        /// <summary>
+        ///     Приводит выбивающиеся фичи к верному типу для поиска аномалий
+        /// </summary>
+        private AnomalyHouseModel ProcessingAnomalyData(string houseInfo)
+        {
+            var information = houseInfo.Split(_separatorChar);
+
+            return new AnomalyHouseModel
+            {
+                Id = float.Parse(information[0].Replace("\"", "")),
+                Price = double.Parse(information[2]),
+                Bedrooms = float.Parse(information[3]),
+                Bathrooms = float.Parse(information[4]),
+                LivingArea = float.Parse(information[5]),
+                Area = float.Parse(information[6]),
+                Floors = float.Parse(information[7].Replace("\"", "")),
+                IsWaterFront = float.Parse(information[8]),
+                View = float.Parse(information[9]),
+                Condition = float.Parse(information[10]),
+                Grade = float.Parse(information[11]),
+                SqftAbove = float.Parse(information[12]),
+                SqftBasement = float.Parse(information[13]),
+                YearBuilt = float.Parse(information[14]),
+                YearRenovation = float.Parse(information[15].Replace("\"", "")),
+                ZipCode = float.Parse(information[16].Replace("\"", "")),
+                Lat = float.Parse(information[17]),
+                Long = float.Parse(information[18]),
+                SqftLiving15 = float.Parse(information[19]),
+                SqftLot15 = float.Parse(information[20]),
+            };
         }
 
         /// <summary>
@@ -145,9 +232,9 @@ namespace ML_ProjectWork
                 _featureNames.Add(sortedFeatures[i]);
             }
 
-            if (!_featureNames.Contains(_label))
+            if (!_featureNames.Contains("Label"))
             {
-                _featureNames.Add(_label);
+                _featureNames.Add("Label");
             }
         }
 
