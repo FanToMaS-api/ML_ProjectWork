@@ -137,7 +137,7 @@ namespace ML_ProjectWork
 
             var prediction = predEngine.Predict(house);
 
-            Console.WriteLine($"Predicted price = {prediction.Score} for trainer: {_trainer} (accuracy = {Accuracy})");
+            Console.WriteLine($"Predicted price = {prediction.Score} for trainer: {_trainer} (accuracy = {Accuracy:P2})");
         }
 
         #endregion
