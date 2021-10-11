@@ -1,11 +1,11 @@
 ﻿using Microsoft.ML.Data;
 
-namespace ML_ProjectWork
+namespace ML_ProjectWork.Models
 {
     /// <summary>
-    ///     Модель дома для поиска аномалий
+    ///     Модель дома
     /// </summary>
-    internal class AnomalyHouseModel
+    public class HouseModel
     {
         #region Properties
 
@@ -26,7 +26,7 @@ namespace ML_ProjectWork
         /// </summary>
         [LoadColumn(2)]
         [ColumnName("Label")]
-        public double Price { get; set; }
+        public float Price { get; set; }
 
         /// <summary>
         ///     Кол-во спален

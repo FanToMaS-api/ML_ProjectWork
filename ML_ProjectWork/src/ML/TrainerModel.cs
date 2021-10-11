@@ -1,9 +1,9 @@
-﻿namespace ML_ProjectWork
+﻿namespace ML_ProjectWork.ML
 {
     /// <summary>
     ///     Определяет модели тренеров
     /// </summary>
-    internal enum TrainerModel
+    public enum TrainerModel
     {
         /// <summary>
         ///     LbfgsPoissonRegression
@@ -48,6 +48,11 @@
         /// <summary>
         ///     Sdca
         /// </summary>
-        Sdca
+        Sdca,
+
+        /// <summary>
+        ///     Без тренера (для графиков)
+        /// </summary>
+        None
     }
 }

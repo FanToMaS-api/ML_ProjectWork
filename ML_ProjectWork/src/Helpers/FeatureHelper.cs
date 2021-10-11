@@ -1,13 +1,13 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
+using Microsoft.ML.Trainers.FastTree;
+using Microsoft.ML.Trainers.LightGbm;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.ML.Trainers.FastTree;
-using Microsoft.ML.Trainers.LightGbm;
 
-namespace ML_ProjectWork
+namespace ML_ProjectWork.Helpers
 {
     /// <summary>
     ///     Вычисляет значимость фич
