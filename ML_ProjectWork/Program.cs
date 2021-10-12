@@ -2,6 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using ML_ProjectWork.AutoML;
+using ML_ProjectWork.Helpers;
+using ML_ProjectWork.ML.Enum;
+using ML_ProjectWork.ML.Impl;
 
 namespace ML_ProjectWork
 {
@@ -16,8 +20,8 @@ namespace ML_ProjectWork
             var trainers = new List<TrainerModel>
             {
                 TrainerModel.LbfgsPoissonRegression,
-                TrainerModel.FastForest,
-                TrainerModel.FastTree,
+                //TrainerModel.FastForest,
+                //TrainerModel.FastTree,
                 TrainerModel.FastTreeTweedie,
                 // TrainerModel.Gam,
                 // TrainerModel.LightGbm,
@@ -35,13 +39,16 @@ namespace ML_ProjectWork
             var timer = new Stopwatch();
             var rSquared = 0.0;
             var rootMeanSquaredError = 0.0;
+            IModel model = default;
 
             foreach (var trainer in trainers)
             {
                 timer.Start();
 
-                var model = new RegressionModel(dataPath, 10, trainer, isPeek: false);
+                model = new RegressionModel(dataPath, 10, trainer);
                 model.Fit();
+
+                DataPresentor.PeekDataViewInConsole(3, model.PredictedData);
 
                 timer.Stop();
 
@@ -63,6 +70,8 @@ namespace ML_ProjectWork
                               $"Root Mean Squared Error: {rootMeanSquaredError}\n" +
                               $"RSquared: {rSquared:P2}\n" +
                               $"Time: {(double)time / 1000} s\n");
+
+            AutoMl.AutoRun(900, model!.TrainData, model.TestData);
             Console.ForegroundColor = ConsoleColor.White;
         }
     }

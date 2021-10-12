@@ -1,4 +1,4 @@
-﻿namespace ML_ProjectWork.ML
+﻿namespace ML_ProjectWork.ML.Enum
 {
     /// <summary>
     ///     Определяет модели тренеров

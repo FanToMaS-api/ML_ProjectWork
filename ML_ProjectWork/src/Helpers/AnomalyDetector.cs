@@ -6,7 +6,7 @@ using Microsoft.ML;
 using Microsoft.ML.TimeSeries;
 using ML_ProjectWork.Models;
 
-namespace ML_ProjectWork.ML
+namespace ML_ProjectWork.Helpers
 {
     /// <summary>
     ///     Ищет аномалии в данных
