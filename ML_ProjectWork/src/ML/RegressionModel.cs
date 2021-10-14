@@ -1,14 +1,15 @@
-﻿using Microsoft.ML;
-using Microsoft.ML.Data;
-using ML_ProjectWork.Helpers;
-using ML_ProjectWork.ML.Enum;
-using ML_ProjectWork.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
+using ML_ProjectWork.Helpers;
+using ML_ProjectWork.ML.Enum;
+using ML_ProjectWork.Models;
 
-namespace ML_ProjectWork.ML.Impl
+namespace ML_ProjectWork.ML
 {
     /// <summary>
     ///     Класс занимается созданием и обучением модели, предсказанием результатов
@@ -188,7 +189,7 @@ namespace ML_ProjectWork.ML.Impl
         /// <summary>
         ///     Приводит выбивающиеся фичи к верному типу
         /// </summary>
-        private HouseModel ProcessingData(string houseInfo)
+        public HouseModel ProcessingData(string houseInfo)
         {
             var information = houseInfo.Split(_separatorChar);
 
@@ -254,9 +255,18 @@ namespace ML_ProjectWork.ML.Impl
         private EstimatorChain<ITransformer> CreatePipeline()
         {
             // Подготовка основного pipline
-            var pipeline = MlContext.Transforms.Concatenate("Features", Features.ToArray())
-                .Append(MlContext.Transforms.DropColumns(_dropColumns.ToArray()))
-                .Append(MlContext.Transforms.NormalizeLogMeanVariance("Features"));
+            EstimatorChain<NormalizingTransformer> pipeline;
+            if (_dropColumns.Count == 0)
+            {
+                pipeline = MlContext.Transforms.Concatenate("Features", Features.ToArray())
+                    .Append(MlContext.Transforms.NormalizeLogMeanVariance("Features"));
+            }
+            else
+            {
+                pipeline = MlContext.Transforms.Concatenate("Features", Features.ToArray())
+                    .Append(MlContext.Transforms.DropColumns(_dropColumns.ToArray()))
+                    .Append(MlContext.Transforms.NormalizeLogMeanVariance("Features"));
+            }
 
             var trainer = SetTrainer();
             return pipeline.Append(trainer);

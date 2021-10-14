@@ -1,6 +1,5 @@
 ﻿using ML_ProjectWork.ML;
 using System;
-using ML_ProjectWork.ML.Impl;
 
 namespace ML_ProjectWork.Models
 {
@@ -23,16 +22,17 @@ namespace ML_ProjectWork.Models
         /// <summary>
         ///     Предсказывает цену дома, запускать только на нормализованных данных
         /// </summary>
-        public static void Predict(RegressionModel model, HouseModel house, string expectedValue)
+        public static void Predict<T>(IModel model, T @object, string expectedValue)
+        where T : class
         {
             if (model.Model is null)
             {
                 return;
             }
 
-            var predEngine = model.MlContext.Model.CreatePredictionEngine<HouseModel, PredictionModel>(model.Model);
+            var predEngine = model.MlContext.Model.CreatePredictionEngine<T, PredictionModel>(model.Model);
 
-            var prediction = predEngine.Predict(house);
+            var prediction = predEngine.Predict(@object);
 
             Console.WriteLine($"Predicted price = {prediction.Score} | Expected value = {expectedValue}" +
                               $" for trainer: {model.Trainer}  (error = {model.MeanAbsoluteError} rsquared = {model.RSquared:P2})");

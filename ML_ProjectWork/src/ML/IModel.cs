@@ -2,6 +2,7 @@
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using ML_ProjectWork.ML.Enum;
+using ML_ProjectWork.Models;
 
 namespace ML_ProjectWork.ML
 {
