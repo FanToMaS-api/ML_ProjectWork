@@ -28,11 +28,6 @@ namespace ML_ProjectWork.ML
         public double RootMeanSquaredError { get; }
 
         /// <summary>
-        ///     Путь к файлу с данными
-        /// </summary>
-        public string DataPath { get; }
-
-        /// <summary>
         ///     Список имен фичей
         /// </summary>
         public List<string> Features { get; }

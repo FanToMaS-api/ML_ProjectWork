@@ -81,31 +81,26 @@ namespace ML_ProjectWork.ML
 
         #region .ctor
 
-        /// <inheritdoc cref="Model"/>
+        /// <inheritdoc cref="RegressionModel"/>
         public RegressionModel(
             string dataPath,
             int countExcludedFeatures,
             TrainerModel trainer,
             bool isLoadSavedModel,
+            List<int> anomalyIndexes,
             char separatorChar = ',',
             double testFraction = 0.2)
         {
             MlContext = new MLContext(212103); // 212103 - seed, чтобы при новом запуске результаты оставались теми же
             IsLoadSavedModel = isLoadSavedModel;
             Trainer = trainer;
-            DataPath = dataPath;
 
             _testFraction = testFraction;
             _dropColumns = new();
             _countExcludedFeatures = countExcludedFeatures;
             _separatorChar = separatorChar;
 
-            // Получаю и обрабатываю данные
-            var housesData = File.ReadAllLines(dataPath)
-                .Skip(1)
-                .Select(ProcessingData)
-                .ToArray();
-
+            var housesData = LoadData(dataPath, anomalyIndexes);
             _dataView = MlContext.Data.LoadFromEnumerable(housesData);
 
             // Изначально отбираю все фичи
@@ -126,11 +121,6 @@ namespace ML_ProjectWork.ML
         public double RootMeanSquaredError { get; private set; }
 
         /// <inheritdoc />
-        public string DataPath { get; init; }
-
-        /// <summary>
-        ///     Список имен фичей
-        /// </summary>
         public List<string> Features { get; }
 
         /// <inheritdoc />
@@ -216,6 +206,31 @@ namespace ML_ProjectWork.ML
         #endregion
 
         #region Private methods
+
+        /// <summary>
+        ///     Зашружает данные и чистит их от аномалий
+        /// </summary>
+        private HouseModel[] LoadData(string dataPath, List<int> anomalyIndexes)
+        {
+            // Получаю и обрабатываю данные
+            var housesData = File.ReadAllLines(dataPath)
+                .Skip(1)
+                .Select(ProcessingData)
+                .ToList();
+
+            if (anomalyIndexes is null)
+            {
+                return housesData.ToArray();
+            }
+
+            for (var i = 0; i < anomalyIndexes.Count; i++)
+            {
+                var anomalyIndex = anomalyIndexes[i];
+                housesData.RemoveAt(anomalyIndex - i); // так как после первого удаления все смещается
+            }
+
+            return housesData.ToArray();
+        }
 
         /// <summary>
         ///     Приводит выбивающиеся фичи к верному типу

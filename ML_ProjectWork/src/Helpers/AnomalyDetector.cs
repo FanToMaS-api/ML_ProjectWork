@@ -38,7 +38,7 @@ namespace ML_ProjectWork.Helpers
 
         #region .ctor
 
-        public AnomalyDetector(string dataPath, double sensitivity = 85, double threshold = 0.5, char separatorChar = ',')
+        public AnomalyDetector(string dataPath, double sensitivity = 85, double threshold = 0.6, char separatorChar = ',')
         {
             _threshold = threshold;
             _separatorChar = separatorChar;
@@ -76,7 +76,6 @@ namespace ML_ProjectWork.Helpers
         /// </returns>
         public List<int> FindAnomalies()
         {
-            // TODO Добавить удаление аномалий
             // Поиск сезонности у Label (цикличности)
             var seasonality = _mlContext.AnomalyDetection.DetectSeasonality(_anomalyDataView, "Label");
 
@@ -102,23 +101,25 @@ namespace ML_ProjectWork.Helpers
 
             var predictions = _mlContext.Data.CreateEnumerable<PredictionAnomalyModel>(result, false);
 
-            var count = 0;
-            var listToSkip = new List<int>();
             var allCount = 0;
+            var listToSkip = new List<int>();
+            var anomalyIndex = 0;
             foreach (var prediction in predictions)
             {
                 // Preds[0] принимает значения 0 или 1, 1 только в том случае, если для данные превысили Threshold
                 if (prediction.Preds[0] == 1)
                 {
-                    count++;
-                    listToSkip.Add(allCount);
+                    allCount++;
+                    listToSkip.Add(anomalyIndex);
                 }
 
-                allCount++;
+                anomalyIndex++;
             }
 
+            listToSkip.Sort();
+
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Count all anomalies: {count}");
+            Console.WriteLine($"Count all anomalies: {allCount}");
             Console.ForegroundColor = ConsoleColor.White;
 
             return listToSkip;

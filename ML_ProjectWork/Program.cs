@@ -30,8 +30,8 @@ namespace ML_ProjectWork
                 TrainerModel.Sdca
             };
 
-            var anomalyDetector = new AnomalyDetector(dataPath);
-            anomalyDetector.FindAnomalies();
+            var anomalyDetector = new AnomalyDetector(dataPath, threshold: 0.5);
+            var anomalyIndexes = anomalyDetector.FindAnomalies();
 
             var meanAbsoluteError = 0.0;
             var bestModel = "";
@@ -63,12 +63,13 @@ namespace ML_ProjectWork
                 SqftLot15 = 5650,
             };
 
+            // TODO: подумать над многопоточным обучением тренеров
             foreach (var trainer in trainers)
             {
                 timer.Start();
 
                 // не всегда уменьшение кол-ва фич является здравой идеей
-                IModel model = new RegressionModel(dataPath, 2, trainer, isLoadSavedModel: true);
+                IModel model = new RegressionModel(dataPath, 0, trainer, isLoadSavedModel: true, anomalyIndexes);
                 model.Fit();
 
                 // model.Save();

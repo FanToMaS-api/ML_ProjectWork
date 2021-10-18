@@ -35,7 +35,7 @@ namespace ML_ProjectWork.Models
             var prediction = predEngine.Predict(@object);
 
             Console.WriteLine($"Predicted price = {prediction.Score} | Expected value = {expectedValue}" +
-                              $" for trainer: {model.Trainer}  (error = {model.MeanAbsoluteError} rsquared = {model.RSquared:P2})");
+                              $" for trainer: {model.Trainer}  (error = {model.MeanAbsoluteError:#.##} rsquared = {model.RSquared:P2})");
         }
 
         #endregion
