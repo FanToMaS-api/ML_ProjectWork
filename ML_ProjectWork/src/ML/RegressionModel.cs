@@ -19,7 +19,7 @@ namespace ML_ProjectWork.ML
         #region Fields
 
         /// <summary>
-        ///     Число для разделения данных на тестовые и тренировочные
+        ///     Отношение данных: тестовые к тренировочным
         /// </summary>
         private readonly double _testFraction;
 
@@ -208,7 +208,7 @@ namespace ML_ProjectWork.ML
         #region Private methods
 
         /// <summary>
-        ///     Зашружает данные и чистит их от аномалий
+        ///     Загружает данные и чистит их от аномалий
         /// </summary>
         private HouseModel[] LoadData(string dataPath, List<int> anomalyIndexes)
         {
