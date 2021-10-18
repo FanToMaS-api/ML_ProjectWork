@@ -242,10 +242,10 @@ namespace ML_ProjectWork.ML
                 Features.Add(sortedFeatures[i]);
             }
 
-            // Колонка Label может быть исключена, но ее исключать нельзя
-            if (!Features.Contains("Label"))
+            // Нельзя включать Label в Features
+            if (Features.Contains("Label"))
             {
-                Features.Add("Label");
+                Features.Remove("Label");
             }
         }
 
@@ -259,13 +259,16 @@ namespace ML_ProjectWork.ML
             if (_dropColumns.Count == 0)
             {
                 pipeline = MlContext.Transforms.Concatenate("Features", Features.ToArray())
-                    .Append(MlContext.Transforms.NormalizeLogMeanVariance("Features"));
+
+                    // Выбор нормализации влияет на результат
+                    // https://docs.microsoft.com/en-us/dotnet/api/microsoft.ml.transforms.normalizingestimator?view=ml-dotnet
+                    .Append(MlContext.Transforms.NormalizeBinning("Features"));
             }
             else
             {
                 pipeline = MlContext.Transforms.Concatenate("Features", Features.ToArray())
                     .Append(MlContext.Transforms.DropColumns(_dropColumns.ToArray()))
-                    .Append(MlContext.Transforms.NormalizeLogMeanVariance("Features"));
+                     .Append(MlContext.Transforms.NormalizeBinning("Features"));
             }
 
             var trainer = SetTrainer();

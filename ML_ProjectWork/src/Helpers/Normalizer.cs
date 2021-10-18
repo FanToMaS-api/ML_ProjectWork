@@ -10,6 +10,8 @@ namespace ML_ProjectWork.Helpers
     /// <remarks>
     ///     Используется нормализация средним (Z-нормализация)
     ///     https://wiki.loginom.ru/articles/data-normalization.html
+    ///     На данный моммент не используется, нужен для настраиваемой нормализации данных
+    ///     Если шарповая - не устраивает
     /// </remarks>
     internal class Normalizer<T>
     where T : class

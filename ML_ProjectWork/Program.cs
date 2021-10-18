@@ -6,8 +6,6 @@ using ML_ProjectWork.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 namespace ML_ProjectWork
 {
@@ -22,14 +20,14 @@ namespace ML_ProjectWork
             var trainers = new List<TrainerModel>
             {
                 TrainerModel.LbfgsPoissonRegression,
-                //TrainerModel.FastForest,
-                //TrainerModel.FastTree,
+                TrainerModel.FastForest,
+                TrainerModel.FastTree,
                 TrainerModel.FastTreeTweedie,
-                // TrainerModel.Gam,
-                // TrainerModel.LightGbm,
-                // TrainerModel.Ols,
-                // TrainerModel.OnlineGradientDescent,
-                // TrainerModel.Sdca
+                TrainerModel.Gam,
+                TrainerModel.LightGbm,
+                TrainerModel.Ols,
+                TrainerModel.OnlineGradientDescent,
+                TrainerModel.Sdca
             };
 
             var anomalyDetector = new AnomalyDetector(dataPath);
@@ -44,44 +42,37 @@ namespace ML_ProjectWork
 
             var house = new HouseModel
             {
-                Id = 12,
-                Bedrooms = 1,
-                Bathrooms = 2,
-                LivingArea = 200,
-                Area = 250,
-                Floors = 2,
-                IsWaterFront = 1,
-                View = 3,
-                Condition = 4,
-                Grade = 3,
-                SqftAbove = 2,
-                SqftBasement = 3,
-                YearBuilt = 2012,
-                YearRenovation = 2015,
-                ZipCode = 01,
-                Lat = (float)0.5112,
-                Long = 40,
-                SqftLiving15 = 500,
-                SqftLot15 = 750,
+                Id = 7129300520,
+                Bedrooms = 3,
+                Bathrooms = 1,
+                LivingArea = 1180,
+                Area = 5650,
+                Floors = 1,
+                IsWaterFront = 0,
+                View = 0,
+                Condition = 3,
+                Grade = 7,
+                SqftAbove = 1180,
+                SqftBasement = 0,
+                YearBuilt = 1955,
+                YearRenovation = 0,
+                ZipCode = 98178,
+                Lat = (float)47.5112,
+                Long = (float)-122.257,
+                SqftLiving15 = 1340,
+                SqftLot15 = 5650,
             };
-
-            var houseModels = File.ReadAllLines(dataPath)
-                .Skip(1)
-                .Select(ProcessingData)
-                .ToArray();
-
-            var normalizer = new Normalizer<HouseModel>(houseModels);
-            normalizer.Normalize(house);
 
             foreach (var trainer in trainers)
             {
                 timer.Start();
 
-                IModel model = new RegressionModel(dataPath, 12, trainer);
+                // не всегда уменьшение кол-ва фич является здравой идеей
+                IModel model = new RegressionModel(dataPath, 2, trainer);
                 model.Fit();
 
                 // Неточность предсказаний связана с аномальными данными в исходных
-                PredictionModel.Predict(model, house, "100_000");
+                PredictionModel.Predict(model, house, "221900");
 
                 // чтобы не засорять вывод в консоли
                 // DataPresentor.PeekDataViewInConsole(3, model.PredictedData);
