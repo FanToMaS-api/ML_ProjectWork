@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using Microsoft.ML;
-using Microsoft.ML.Data;
+﻿using Microsoft.ML;
 using ML_ProjectWork.ML.Enum;
-using ML_ProjectWork.Models;
+using System.Collections.Generic;
 
 namespace ML_ProjectWork.ML
 {
@@ -42,7 +40,7 @@ namespace ML_ProjectWork.ML
         /// <summary>
         ///     Обученная модель
         /// </summary>
-        public TransformerChain<ITransformer> Model { get; }
+        public ITransformer Model { get; }
 
         /// <summary>
         ///     MlContext
@@ -69,6 +67,11 @@ namespace ML_ProjectWork.ML
         /// </summary>
         public IDataView TestData { get; }
 
+        /// <summary>
+        ///     Определяет, загружать ли сохраненную модель
+        /// </summary>
+        public bool IsLoadSavedModel { get; }
+
         #endregion
 
         #region Public methods
@@ -82,6 +85,11 @@ namespace ML_ProjectWork.ML
         ///     Устанавливает тренера в соответствии с выбранным Trainer
         /// </summary>
         public IEstimator<ITransformer> SetTrainer();
+
+        /// <summary>
+        ///     Сохраняет модель
+        /// </summary>
+        public void Save();
 
         #endregion
     }

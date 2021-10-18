@@ -60,6 +60,23 @@ namespace ML_ProjectWork.ML
                 { TrainerModel.Sdca, new MLContext(212103).Regression.Trainers.Sdca() }
             };
 
+        /// <summary>
+        ///     Словарь возвращающий пути сохранения моделей по типу трененров
+        /// </summary>
+        private static readonly Dictionary<TrainerModel, string> _trainerPath =
+            new()
+            {
+                { TrainerModel.LbfgsPoissonRegression, "LbfgsPoissonRegression.zip" },
+                { TrainerModel.FastForest, "FastForest.zip" },
+                { TrainerModel.FastTree, "FastTree.zip" },
+                { TrainerModel.FastTreeTweedie, "FastTreeTweedie.zip" },
+                { TrainerModel.Gam, "Gam.zip" },
+                { TrainerModel.LightGbm, "LightGbm.zip" },
+                { TrainerModel.Ols, "Ols.zip" },
+                { TrainerModel.OnlineGradientDescent, "OnlineGradientDescent.zip" },
+                { TrainerModel.Sdca, "Sdca.zip" }
+            };
+
         #endregion
 
         #region .ctor
@@ -69,17 +86,19 @@ namespace ML_ProjectWork.ML
             string dataPath,
             int countExcludedFeatures,
             TrainerModel trainer,
+            bool isLoadSavedModel,
             char separatorChar = ',',
             double testFraction = 0.2)
         {
             MlContext = new MLContext(212103); // 212103 - seed, чтобы при новом запуске результаты оставались теми же
-            _countExcludedFeatures = countExcludedFeatures;
+            IsLoadSavedModel = isLoadSavedModel;
             Trainer = trainer;
+            DataPath = dataPath;
 
             _testFraction = testFraction;
             _dropColumns = new();
+            _countExcludedFeatures = countExcludedFeatures;
             _separatorChar = separatorChar;
-            DataPath = dataPath;
 
             // Получаю и обрабатываю данные
             var housesData = File.ReadAllLines(dataPath)
@@ -115,7 +134,7 @@ namespace ML_ProjectWork.ML
         public List<string> Features { get; }
 
         /// <inheritdoc />
-        public TransformerChain<ITransformer> Model { get; private set; }
+        public ITransformer Model { get; private set; }
 
         /// <inheritdoc />
         public MLContext MlContext { get; }
@@ -132,6 +151,9 @@ namespace ML_ProjectWork.ML
         /// <inheritdoc />
         public IDataView TestData { get; private set; }
 
+        /// <inheritdoc />
+        public bool IsLoadSavedModel { get; init; }
+
         #endregion
 
         #region Public methods
@@ -139,17 +161,28 @@ namespace ML_ProjectWork.ML
         /// <inheritdoc />
         public void Fit()
         {
-            DataPreparing();
-
-            var trainedPipeline = CreatePipeline();
-
             // Разделение данных на тестовые и тренировочные в соответствии с фракцией
             var trainTestData = MlContext.Data.TrainTestSplit(_dataView, _testFraction);
             TrainData = trainTestData.TrainSet;
             TestData = trainTestData.TestSet;
 
-            // Обучение модели
-            Model = trainedPipeline.Fit(TrainData);
+            if (IsLoadSavedModel)
+            {
+                if (!File.Exists(_trainerPath[Trainer]))
+                {
+                    throw new FileNotFoundException("Error! Нет данных для загрузке модели для данного тренера.");
+                }
+
+                Load();
+            }
+            else
+            {
+                DataPreparing();
+                var trainedPipeline = CreatePipeline();
+
+                // Обучение модели
+                Model = trainedPipeline.Fit(TrainData);
+            }
 
             // Тестирование точности на тестовых данных
             PredictedData = Model.Transform(TestData);
@@ -174,12 +207,10 @@ namespace ML_ProjectWork.ML
             }
         }
 
-        /// <summary>
-        ///     Сохраняет модель TODO продумать механизм выгрузки
-        /// </summary>
-        public void SaveModel()
+        /// <inheritdoc />
+        public void Save()
         {
-            MlContext.Model.Save(Model, _dataView.Schema, $"{Trainer}.zip");
+            MlContext.Model.Save(Model, _dataView.Schema, _trainerPath[Trainer]);
         }
 
         #endregion
@@ -273,6 +304,14 @@ namespace ML_ProjectWork.ML
 
             var trainer = SetTrainer();
             return pipeline.Append(trainer);
+        }
+
+        /// <summary>
+        ///     Загружает модель из файла
+        /// </summary>
+        private void Load()
+        {
+            Model = MlContext.Model.Load(_trainerPath[Trainer], out _);
         }
 
         #endregion

@@ -16,7 +16,7 @@ namespace ML_ProjectWork
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             var dataPath = @"..\..\..\..\kc_house_data.csv";
 
-            // всевозможные тренера (часть закомменчена для быстроты получения результата)
+            // всевозможные тренера
             var trainers = new List<TrainerModel>
             {
                 TrainerModel.LbfgsPoissonRegression,
@@ -68,8 +68,10 @@ namespace ML_ProjectWork
                 timer.Start();
 
                 // не всегда уменьшение кол-ва фич является здравой идеей
-                IModel model = new RegressionModel(dataPath, 2, trainer);
+                IModel model = new RegressionModel(dataPath, 2, trainer, isLoadSavedModel: true);
                 model.Fit();
+
+                // model.Save();
 
                 // Неточность предсказаний связана с аномальными данными в исходных
                 PredictionModel.Predict(model, house, "221900");
