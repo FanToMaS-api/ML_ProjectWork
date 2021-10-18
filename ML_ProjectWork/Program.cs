@@ -96,8 +96,8 @@ namespace ML_ProjectWork
 
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"Best trainer: {bestModel}\n" +
-                              $"Mean Absolute Error: {meanAbsoluteError}\n" +
-                              $"Root Mean Squared Error: {rootMeanSquaredError}\n" +
+                              $"Mean Absolute Error: {meanAbsoluteError:#.##}\n" +
+                              $"Root Mean Squared Error: {rootMeanSquaredError:#.##}\n" +
                               $"RSquared: {rSquared:P2}\n" +
                               $"Time: {(double)time / 1000} s\n");
 

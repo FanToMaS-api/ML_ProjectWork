@@ -68,8 +68,8 @@ namespace ML_ProjectWork.AutoML
             BestModel = experiment.BestRun.Model;
 
             Console.WriteLine($"AutoMl Best Trainer: {bestRun.TrainerName}");
-            Console.WriteLine($"AutoMl Mean Absolute Error: {bestRun.ValidationMetrics.MeanAbsoluteError}");
-            Console.WriteLine($"AutoMl Root Mean Squared Error: {bestRun.ValidationMetrics.RootMeanSquaredError}");
+            Console.WriteLine($"AutoMl Mean Absolute Error: {bestRun.ValidationMetrics.MeanAbsoluteError:#.##}");
+            Console.WriteLine($"AutoMl Root Mean Squared Error: {bestRun.ValidationMetrics.RootMeanSquaredError:#.##}");
             Console.WriteLine($"AutoMl RSquared: {bestRun.ValidationMetrics.RSquared:P2}");
         }
 
